@@ -1,0 +1,15 @@
+# cargo-audit policy. Keep advisory exceptions in sync with deny.toml.
+# Only advisories with no safe upgrade path are ignored.
+
+[advisories]
+ignore = [
+    "RUSTSEC-2025-0141",
+    "RUSTSEC-2025-0057",
+    "RUSTSEC-2024-0384",
+    "RUSTSEC-2020-0168",
+    "RUSTSEC-2024-0436",
+    "RUSTSEC-2024-0370",
+    "RUSTSEC-2025-0134",
+    "RUSTSEC-2026-0206",
+    "RUSTSEC-2026-0192",
+]

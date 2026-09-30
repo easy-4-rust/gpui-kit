@@ -224,11 +224,14 @@ impl ComponentTooltip {
     }
 }
 
-// ── Internal managed tooltip trait ──────────────────────────────────────────
+// ── Managed tooltip extension trait ─────────────────────────────────────────
 
-pub(crate) trait ManagedTooltipExt:
-    StatefulInteractiveElement + crate::ElementExt + Sized
-{
+/// Attaches GPUI Kit's window-managed tooltip behavior to any stateful interactive element.
+///
+/// This is public so external styled component crates can reuse the same Root-owned tooltip
+/// overlay, placement, hover lifecycle, and dismissal behavior as built-in GPUI Component
+/// controls instead of implementing a competing tooltip host.
+pub trait ManagedTooltipExt: StatefulInteractiveElement + crate::ElementExt + Sized {
     fn managed_tooltip(
         self,
         build_tooltip: impl Fn(&mut Window, &mut App) -> AnyView + 'static,

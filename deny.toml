@@ -1,0 +1,72 @@
+# cargo-deny policy for the easy-4-rust GPUI ecosystem.
+# Structure follows easyofd-rust.
+#
+# Advisory exceptions below are limited to transitive dependencies for which
+# RustSec reports "No safe upgrade is available". They are kept in sync with
+# .cargo/audit.toml. Vulnerabilities with an available upgrade are NOT ignored.
+
+[graph]
+all-features = false
+
+[advisories]
+version = 2
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+yanked = "warn"
+ignore = [
+    "RUSTSEC-2025-0141",
+    "RUSTSEC-2025-0057",
+    "RUSTSEC-2024-0384",
+    "RUSTSEC-2020-0168",
+    "RUSTSEC-2024-0436",
+    "RUSTSEC-2024-0370",
+    "RUSTSEC-2025-0134",
+    "RUSTSEC-2026-0206",
+    "RUSTSEC-2026-0192",
+]
+
+[licenses]
+version = 2
+allow = [
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "BSL-1.0",
+    "CC0-1.0",
+    "MPL-2.0",
+    "NCSA",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Unlicense",
+    "bzip2-1.0.6",
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.8
+
+[licenses.private]
+ignore = true
+registries = []
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+highlight = "all"
+deny = []
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = [
+    "https://github.com/easy-4-rust/gpui-kit.git",
+    "https://github.com/awslabs/llrt",
+    "https://github.com/longbridge/quickjs-jit",
+]
