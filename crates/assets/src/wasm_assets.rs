@@ -34,7 +34,7 @@ impl AssetSource for Assets {
             return Ok(None);
         }
 
-        if path.starts_with("icons/") && path.ends_with(".svg") {
+        if path.starts_with("icons/") && (path.ends_with(".svg") || path.ends_with(".png")) {
             // Check if already cached
             if let Ok(cache) = self.cache.read() {
                 if let Some(data) = cache.get(path) {
