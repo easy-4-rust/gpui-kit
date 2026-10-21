@@ -13,7 +13,7 @@
 //! [`TextViewState::rendered_text`]: super::TextViewState::rendered_text
 
 #[cfg(not(target_family = "wasm"))]
-use std::time::Instant;
+use web_time::Instant;
 use std::{
     ops::Range,
     sync::{Arc, Mutex, OnceLock},

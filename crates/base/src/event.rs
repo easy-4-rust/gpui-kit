@@ -3,7 +3,7 @@ use gpui::{
     StatefulInteractiveElement, TouchPhase, Window,
 };
 
-/// gpui delimits scroll gestures with `std::time::Instant`, which is
+/// gpui delimits scroll gestures with `web_time::Instant`, which is
 /// unimplemented on wasm32: the first wheel event over an axis-locked scroll
 /// area panics with "time not implemented on this platform" and takes the whole
 /// application down, leaving the canvas unresponsive. Losing the axis lock in

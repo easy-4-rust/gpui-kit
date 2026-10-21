@@ -1,6 +1,6 @@
 use futures::Stream as _;
 #[cfg(not(target_family = "wasm"))]
-use std::time::Instant;
+use web_time::Instant;
 use std::{
     ops::{Range, RangeInclusive},
     pin::Pin,

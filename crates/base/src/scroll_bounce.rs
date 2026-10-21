@@ -7,7 +7,7 @@ use gpui::{
     ScrollDelta, ScrollWheelEvent, TouchPhase, Window, point, px,
 };
 #[cfg(not(target_family = "wasm"))]
-use std::time::Instant;
+use web_time::Instant;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 #[cfg(target_family = "wasm")]
 use web_time::Instant;
