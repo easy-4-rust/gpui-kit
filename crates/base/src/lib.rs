@@ -53,6 +53,7 @@ mod radio_group;
 mod reduce_motion;
 mod resizable;
 mod root;
+mod safe_update;
 mod scroll_bounce;
 mod scrollable_mask;
 mod scrollbar;
@@ -157,6 +158,7 @@ pub use resizable::{
 #[doc(hidden)]
 pub use resizable::{PANEL_MIN_SIZE, resize_handle};
 pub use root::{Root, RootPlugin};
+pub use safe_update::SafeUpdateExt;
 pub use scroll_bounce::{ScrollBounce, ScrollBounceMotion};
 pub use scrollable_mask::ScrollableMask;
 pub use scrollbar::{

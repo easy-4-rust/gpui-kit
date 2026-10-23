@@ -880,14 +880,24 @@ impl<M: InputModeKind> InputBaseState<M> {
         self.mode.diagnostics_mut()
     }
 
-    /// Set placeholder
+    /// Set placeholder.
+    ///
+    /// Change-guarded: render-phase prop syncs re-write the same text every
+    /// frame through `window.defer`; an unconditional notify would keep the
+    /// window dirty forever ("render → defer → notify → dirty → redraw"),
+    /// which never converges under gpui's deterministic test scheduling
+    /// (element gallery 10.6-②).
     pub fn set_placeholder(
         &mut self,
         placeholder: impl Into<SharedString>,
         _: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        self.placeholder = placeholder.into();
+        let placeholder = placeholder.into();
+        if self.placeholder == placeholder {
+            return;
+        }
+        self.placeholder = placeholder;
         cx.notify();
     }
 

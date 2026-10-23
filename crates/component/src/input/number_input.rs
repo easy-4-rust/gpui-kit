@@ -1,6 +1,6 @@
 use crate::theme::ActiveTheme;
 use gpui::{
-    AnyElement, App, Entity, FocusHandle, Focusable, InteractiveElement as _,
+    AnyElement, App, ElementId, Entity, FocusHandle, Focusable, InteractiveElement as _,
     StatefulInteractiveElement as _, Window, div, px,
 };
 use gpui::{
@@ -28,6 +28,7 @@ pub struct NumberInput {
     focus_ring_enabled: bool,
     disabled: bool,
     style: StyleRefinement,
+    instance_id: Option<ElementId>,
 }
 
 impl NumberInput {
@@ -43,7 +44,17 @@ impl NumberInput {
             focus_ring_enabled: true,
             disabled: false,
             style: StyleRefinement::default(),
+            instance_id: None,
         }
+    }
+
+    /// Disambiguate this instance from every other instance bound to the same
+    /// [`InputState`]. Required when one state drives several spinbuttons
+    /// (the official shared v-model demos); see the base
+    /// [`gpui_base::NumberInput::instance_id`] for the identity details.
+    pub fn instance_id(mut self, id: impl Into<ElementId>) -> Self {
+        self.instance_id = Some(id.into());
+        self
     }
 
     /// Set the placeholder text of the number input.
@@ -183,6 +194,9 @@ impl RenderOnce for NumberInput {
                     .rounded_tr(button_radius)
                     .rounded_br(button_radius)
                     .child(Icon::new(IconName::Plus).with_size(button_size))
+            })
+            .when_some(self.instance_id, |this, instance_id| {
+                this.instance_id(instance_id)
             });
 
         // The visual frame wraps the complete spinbutton. BaseNumberInput routes

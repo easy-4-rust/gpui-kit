@@ -3,9 +3,9 @@ use std::rc::Rc;
 
 use gpui::Focusable;
 use gpui::{
-    AnyElement, App, Entity, EventEmitter, InteractiveElement as _, IntoElement, KeyBinding,
-    ParentElement, RenderOnce, Role, StatefulInteractiveElement as _, StyleRefinement, Styled,
-    Window, actions, div, prelude::FluentBuilder as _,
+    AnyElement, App, ElementId, Entity, EventEmitter, InteractiveElement as _, IntoElement,
+    KeyBinding, ParentElement, RenderOnce, Role, StatefulInteractiveElement as _, StyleRefinement,
+    Styled, Window, actions, div, prelude::FluentBuilder as _,
 };
 
 use crate::{Button, InputBase, StyledExt as _};
@@ -105,6 +105,7 @@ pub struct NumberInput {
     increment_button: Option<ButtonDecorator>,
     input: Option<AnyElement>,
     controls_right: bool,
+    instance_id: Option<ElementId>,
 }
 
 /// The built-in text region of a [`NumberInput`].
@@ -166,7 +167,24 @@ impl NumberInput {
             increment_button: None,
             input: None,
             controls_right: false,
+            instance_id: None,
         }
+    }
+
+    /// Disambiguates this instance from every other instance bound to the same
+    /// [`InputState`] (element gallery 10.6-③).
+    ///
+    /// Several spinbuttons sharing one state (one v-model) usually sit under
+    /// unnamed ancestors, so all of them paint the same GPUI element identity
+    /// and gpui-pre merges their element state: the observation registry keeps
+    /// only the last-painted pane and click activation becomes undefined.
+    /// Give every instance a distinct id to isolate their element state; the
+    /// `increment`/`decrement` leaf ids stay addressable inside each
+    /// instance's subtree. Ids must be stable across frames — do not derive
+    /// them from paint order.
+    pub fn instance_id(mut self, id: impl Into<ElementId>) -> Self {
+        self.instance_id = Some(id.into());
+        self
     }
 
     pub fn disabled(mut self, disabled: bool) -> Self {
@@ -270,8 +288,14 @@ impl RenderOnce for NumberInput {
                 }
             });
 
-        let content = if controls_right {
-            div()
+        // Namespace the content when the caller disambiguated the instance
+        // (see [`NumberInput::instance_id`]): with unnamed ancestors every
+        // instance bound to one `InputState` otherwise paints the same GPUI
+        // element identity below the shared `("number-input", entity)` frame,
+        // merging element state across instances (element gallery 10.6-③).
+        let content = match self.instance_id {
+            Some(instance_id) if controls_right => div()
+                .id(instance_id)
                 .flex()
                 .items_center()
                 .size_full()
@@ -284,16 +308,38 @@ impl RenderOnce for NumberInput {
                         .child(increment_button)
                         .child(decrement_button),
                 )
-                .into_any_element()
-        } else {
-            div()
+                .into_any_element(),
+            Some(instance_id) => div()
+                .id(instance_id)
                 .flex()
                 .items_center()
                 .size_full()
                 .child(decrement_button)
                 .child(text.children(self.children))
                 .child(increment_button)
-                .into_any_element()
+                .into_any_element(),
+            None if controls_right => div()
+                .flex()
+                .items_center()
+                .size_full()
+                .child(text.children(self.children))
+                .child(
+                    div()
+                        .h_full()
+                        .flex()
+                        .flex_col()
+                        .child(increment_button)
+                        .child(decrement_button),
+                )
+                .into_any_element(),
+            None => div()
+                .flex()
+                .items_center()
+                .size_full()
+                .child(decrement_button)
+                .child(text.children(self.children))
+                .child(increment_button)
+                .into_any_element(),
         };
 
         InputBase::new(("number-input", self.state.entity_id()))

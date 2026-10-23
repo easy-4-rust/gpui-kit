@@ -239,6 +239,35 @@ impl VirtualList {
         self
     }
 
+    /// Keep the live scroll offset across frames even when the owner rebuilds
+    /// the [`VirtualListScrollHandle`] on every render (element gallery
+    /// 10.6-④).
+    ///
+    /// The previous frame's handle is parked in this element's window state.
+    /// When the freshly constructed handle differs from it, its offset (which
+    /// received any wheel events since the last frame) is copied into the new
+    /// handle; the new handle is then parked for the next frame. Owners that
+    /// keep one persistent handle (e.g. the table) are unaffected: the stored
+    /// handle matches by identity and nothing is copied.
+    fn restore_scroll_handle(&mut self, global_id: Option<&GlobalElementId>, window: &mut Window) {
+        let Some(global_id) = global_id else {
+            return;
+        };
+        let current = self.scroll_handle.clone();
+        window.with_element_state(
+            global_id,
+            |state: Option<VirtualListScrollHandle>, _window| {
+                if let Some(previous) = state.filter(|previous: &VirtualListScrollHandle| {
+                    !Rc::ptr_eq(&previous.state, &current.state)
+                }) {
+                    let offset = previous.base_handle.offset();
+                    current.base_handle.set_offset(offset);
+                }
+                ((), current.clone())
+            },
+        );
+    }
+
     /// Set the sizing behavior for the list.
     pub fn with_sizing_behavior(mut self, behavior: ListSizingBehavior) -> Self {
         self.sizing_behavior = behavior;
@@ -438,6 +467,9 @@ impl Element for VirtualList {
         window: &mut Window,
         cx: &mut App,
     ) -> (gpui::LayoutId, Self::RequestLayoutState) {
+        // Carry the scroll offset over when the owner rebuilt the handle this
+        // frame, before anything reads the handle (element gallery 10.6-④).
+        self.restore_scroll_handle(global_id, window);
         let rem_size = window.rem_size();
         let font_size = window.text_style().font_size.to_pixels(rem_size);
         let mut size_layout = ItemSizeLayout::default();

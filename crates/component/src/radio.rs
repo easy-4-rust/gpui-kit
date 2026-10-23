@@ -387,6 +387,7 @@ impl RenderOnce for RadioGroup {
         let on_click = self.on_click;
         let disabled = self.disabled;
         let selected_ix = self.selected_index;
+        let mut seen_ids = std::collections::HashSet::new();
 
         let base = if self.layout.is_vertical() {
             v_flex()
@@ -403,7 +404,17 @@ impl RenderOnce for RadioGroup {
                     .children(self.radios.into_iter().enumerate().map(|(ix, mut radio)| {
                         let checked = selected_ix == Some(ix);
 
-                        radio.id = ix.into();
+                        // Preserve the application-owned child id so tests and
+                        // accessibility tooling can address a radio by its own
+                        // name (e.g. "al-pos-top") instead of an opaque group
+                        // index. Sibling duplicates fall back to the historical
+                        // index id: two elements with the same identity in one
+                        // frame would merge their element state and break
+                        // interaction (see docs/fixes-gpui-kit-element-10.6.md ⑤).
+                        let explicit_id = radio.id.clone();
+                        if !seen_ids.insert(explicit_id) {
+                            radio.id = ix.into();
+                        }
                         radio.position_in_set = Some(ix + 1);
                         radio.size_of_set = Some(total);
                         radio.disabled(disabled).checked(checked).when_some(
